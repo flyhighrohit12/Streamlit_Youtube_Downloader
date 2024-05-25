@@ -26,7 +26,7 @@ if st.button("Download"):
                 st.success("Video downloaded successfully!")
                 with open(result, 'rb') as file:
                     st.download_button(
-                        label="Download Video",
+                        label="Click here to download the video",
                         data=file,
                         file_name=os.path.basename(result),
                         mime='video/mp4'
