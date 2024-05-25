@@ -20,16 +20,19 @@ if url:
         selected_stream = stream.get_by_itag(selected_option[0])
         safe_filename = yt.title.replace('/', '-').replace('\\', '-').replace(':', '-').replace('|', '-').replace('*', '-').replace('?', '-').replace('"', '-').replace('<', '-').replace('>', '-')
 
-        with tempfile.NamedTemporaryFile(delete=False) as tmpfile:
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.mp4') as tmpfile:
+            tmpfile_path = tmpfile.name
+            st.write(f"Debug: Temporary file path is {tmpfile_path}")
+
             try:
                 # Download the video directly to a temporary file
-                selected_stream.download(output_path=os.path.dirname(tmpfile.name), filename=safe_filename)
-                tmpfile_path = os.path.join(os.path.dirname(tmpfile.name), safe_filename + '.mp4')
+                selected_stream.download(output_path=os.path.dirname(tmpfile_path), filename=os.path.basename(tmpfile_path))
+                st.write(f"Debug: File should be downloaded to {tmpfile_path}")
 
                 # Ensure the file exists before creating the download button
                 if os.path.exists(tmpfile_path):
+                    st.write("Debug: File exists and is ready for download.")
                     with open(tmpfile_path, 'rb') as f:
-                        # Use st.download_button to provide a direct download link
                         st.download_button(label="Download Video",
                                            data=f,
                                            file_name=safe_filename + ".mp4",
