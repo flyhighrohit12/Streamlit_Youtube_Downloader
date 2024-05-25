@@ -18,18 +18,23 @@ if url:
 
     if st.button('Download Video'):
         selected_stream = stream.get_by_itag(selected_option[0])
+        safe_filename = yt.title.replace('/', '-').replace('\\', '-').replace(':', '-').replace('|', '-').replace('*', '-').replace('?', '-').replace('"', '-').replace('<', '-').replace('>', '-')
 
-        # Sanitize the title for use as a filename
-        safe_filename = yt.title.replace('/', '-').replace('\\', '-').replace(':', '-')
-
-        # Use a temporary file directory context to handle the file
         with tempfile.TemporaryDirectory() as tmpdirname:
             file_path = os.path.join(tmpdirname, safe_filename + '.mp4')
-            selected_stream.download(output_path=tmpdirname, filename=safe_filename)
+            # Attempt to download the video
+            try:
+                selected_stream.download(output_path=tmpdirname, filename=safe_filename)
+                st.success("Downloaded successfully!")
+            except Exception as e:
+                st.error(f"Failed to download the video: {e}")
 
-            # Open the file and create a download button
-            with open(file_path, 'rb') as f:
-                st.download_button(label="Download Video",
-                                   data=f,
-                                   file_name=safe_filename + ".mp4",
-                                   mime="video/mp4")
+            # Attempt to open the file and create a download button
+            try:
+                with open(file_path, 'rb') as f:
+                    st.download_button(label="Download Video",
+                                       data=f,
+                                       file_name=safe_filename + ".mp4",
+                                       mime="video/mp4")
+            except FileNotFoundError:
+                st.error("Failed to find the downloaded file. Please try again.")
