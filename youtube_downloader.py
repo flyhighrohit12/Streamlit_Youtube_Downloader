@@ -27,15 +27,15 @@ if url:
         st.write(f"Video Title: {yt.title}")
         st.image(yt.thumbnail_url)
         
-        # Use a temporary directory for server environment
-        if st.button('Download Video'):
-            with st.spinner('Downloading...'):
+        if st.button('Prepare for Download'):
+            with st.spinner('Preparing the file for download...'):
                 download_path = download_youtube_video(url, output_path='.')
                 if download_path:
-                    # Serve the file as a download
+                    st.success("File is ready! Click the button below to download.")
+                    # Display download button after successful preparation
                     with open(download_path, 'rb') as f:
                         video_data = f.read()
-                    st.download_button(label="Download Video", data=video_data, file_name=os.path.basename(download_path), mime='video/mp4')
+                    st.download_button(label="Download the file Now", data=video_data, file_name=os.path.basename(download_path), mime='video/mp4')
                 else:
                     st.error("Failed to download the video. Please check the URL or try a different resolution.")
     except Exception as e:
