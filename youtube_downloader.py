@@ -1,42 +1,27 @@
-import streamlit as st
+import tkinter as tk
 from pytube import YouTube
-import os
+from tkinter import messagebox, simpledialog
 
-def download_youtube_video(url, output_path='.', resolution='720p'):
-    yt = YouTube(url)
-    stream = yt.streams.filter(res=resolution, file_extension='mp4').first()
-    if stream:
-        # Set filename
-        filename = yt.title.replace('/', '-').replace('\\', '-').replace(':', '-').replace('|', '-').replace('*', '-').replace('?', '-').replace('"', '-').replace('<', '-').replace('>', '-') + ".mp4"
-        
-        # Full path for download
-        full_download_path = os.path.join(output_path, filename)
-        
-        # Download the video
-        stream.download(output_path=output_path, filename=filename)
-        return full_download_path
-    else:
-        return None
-
-st.title('YouTube Video Downloader')
-
-url = st.text_input('Enter the URL of the YouTube video you wish to download:')
-if url:
-    try:
+def download_video():
+    url = simpledialog.askstring("Input", "Enter the YouTube URL:")
+    if url:
         yt = YouTube(url)
-        st.write(f"Video Title: {yt.title}")
-        st.image(yt.thumbnail_url)
-        
-        if st.button('Prepare for Download'):
-            with st.spinner('Preparing the file for download...'):
-                download_path = download_youtube_video(url, output_path='.')
-                if download_path:
-                    st.success("File is ready! Click the button below to download.")
-                    # Display download button after successful preparation
-                    with open(download_path, 'rb') as f:
-                        video_data = f.read()
-                    st.download_button(label="Download the file Now", data=video_data, file_name=os.path.basename(download_path), mime='video/mp4')
-                else:
-                    st.error("Failed to download the video. Please check the URL or try a different resolution.")
-    except Exception as e:
-        st.error(f"An error occurred: {str(e)}")
+        stream = yt.streams.filter(progressive=True, file_extension='mp4').first()
+        if stream:
+            # Set filename
+            filename = yt.title.replace('/', '-').replace('\\', '-').replace(':', '-').replace('|', '-').replace('*', '-').replace('?', '-').replace('"', '-').replace('<', '-').replace('>', '-') + ".mp4"
+            # Download
+            stream.download(filename=filename)
+            messagebox.showinfo("Success", f"Video downloaded: {filename}")
+        else:
+            messagebox.showerror("Error", "Video could not be downloaded.")
+    else:
+        messagebox.showinfo("Cancelled", "No URL provided.")
+
+root = tk.Tk()
+root.title("YouTube Downloader")
+
+download_button = tk.Button(root, text="Download Video", command=download_video)
+download_button.pack(pady=20)
+
+root.mainloop()
