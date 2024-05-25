@@ -2,6 +2,10 @@ import streamlit as st
 from pytube import YouTube
 import os
 import tempfile
+import logging
+
+# Set up basic configuration for logging
+logging.basicConfig(level=logging.INFO)
 
 st.title('YouTube Video Downloader')
 
@@ -22,14 +26,18 @@ if url:
 
         with tempfile.TemporaryDirectory() as tmpdirname:
             video_path = os.path.join(tmpdirname, safe_filename + ".mp4")
+            logging.info(f"Starting download to {video_path}")
             try:
                 selected_stream.download(output_path=tmpdirname, filename=safe_filename)
-                # Ensure the file exists before attempting to open it
+                logging.info("Download completed.")
                 if os.path.exists(video_path):
+                    logging.info("File exists, preparing to serve.")
                     with open(video_path, 'rb') as f:
                         video_data = f.read()
                     st.download_button(label='Download Video', data=video_data, file_name=safe_filename + ".mp4", mime="video/mp4")
                 else:
                     st.error("Downloaded video file not found. Please try again.")
+                    logging.error("File not found after download.")
             except Exception as e:
                 st.error(f"An error occurred during the download: {str(e)}")
+                logging.error(f"An error occurred during the download: {str(e)}")
