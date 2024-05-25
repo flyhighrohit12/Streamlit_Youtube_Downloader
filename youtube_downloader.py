@@ -24,12 +24,7 @@ if st.button("Download"):
             result = download_video(url)
             if os.path.isfile(result):
                 st.success("Video downloaded successfully!")
-                st.download_button(
-                    label="Download the video",
-                    data=open(result, 'rb'),
-                    file_name=os.path.basename(result),
-                    mime='video/mp4'
-                )
+                os.startfile(result)  # This will open the downloaded file
             else:
                 st.error(f"Error downloading video: {result}")
     else:
