@@ -22,19 +22,23 @@ if url:
 
         with tempfile.TemporaryDirectory() as tmpdirname:
             file_path = os.path.join(tmpdirname, safe_filename + '.mp4')
-            # Attempt to download the video
+            # Download the video
             try:
                 selected_stream.download(output_path=tmpdirname, filename=safe_filename)
                 st.success("Downloaded successfully!")
+                st.write(f"Debug: File should be at {file_path}")
             except Exception as e:
                 st.error(f"Failed to download the video: {e}")
 
-            # Attempt to open the file and create a download button
-            try:
-                with open(file_path, 'rb') as f:
-                    st.download_button(label="Download Video",
-                                       data=f,
-                                       file_name=safe_filename + ".mp4",
-                                       mime="video/mp4")
-            except FileNotFoundError:
-                st.error("Failed to find the downloaded file. Please try again.")
+            # Check if file exists and then create a download button
+            if os.path.exists(file_path):
+                try:
+                    with open(file_path, 'rb') as f:
+                        st.download_button(label="Download Video",
+                                           data=f,
+                                           file_name=safe_filename + ".mp4",
+                                           mime="video/mp4")
+                except Exception as e:
+                    st.error(f"Error when creating download button: {e}")
+            else:
+                st.error("Failed to find the downloaded file. Please check the debug info.")
