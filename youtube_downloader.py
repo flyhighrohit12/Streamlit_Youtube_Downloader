@@ -7,8 +7,8 @@ def download_video(url):
     try:
         yt = YouTube(url)
         stream = yt.streams.get_highest_resolution()
-        download_path = os.path.join(os.path.join(os.environ['USERPROFILE'], 'Downloads'), stream.default_filename)
-        stream.download(os.path.join(os.environ['USERPROFILE'], 'Downloads'))
+        download_path = os.path.join(os.path.expanduser('~'), 'Downloads', stream.default_filename)
+        stream.download(os.path.expanduser('~'), 'Downloads')
         return download_path
     except Exception as e:
         return str(e)
