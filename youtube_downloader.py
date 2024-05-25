@@ -2,17 +2,19 @@ import streamlit as st
 from pytube import YouTube
 import os
 
-def download_youtube_video(url, resolution='720p'):
+def download_youtube_video(url, output_path='.', resolution='720p'):
     yt = YouTube(url)
     stream = yt.streams.filter(res=resolution, file_extension='mp4').first()
     if stream:
-        # Set filename and download path
-        filename = yt.title.replace('/', '-').replace('\\', '-').replace(':', '-').replace('|', '-').replace('*', '-').replace('?', '-').replace('"', '-').replace('<', '-').replace('>', '-')
-        download_path = os.path.join(os.getcwd(), filename + ".mp4")
+        # Set filename
+        filename = yt.title.replace('/', '-').replace('\\', '-').replace(':', '-').replace('|', '-').replace('*', '-').replace('?', '-').replace('"', '-').replace('<', '-').replace('>', '-') + ".mp4"
+        
+        # Full path for download
+        full_download_path = os.path.join(output_path, filename)
         
         # Download the video
-        stream.download(filename=filename)
-        return download_path
+        stream.download(output_path=output_path, filename=filename)
+        return full_download_path
     else:
         return None
 
@@ -25,8 +27,11 @@ if url:
         st.write(f"Video Title: {yt.title}")
         st.image(yt.thumbnail_url)
         
+        # Set your desired download path here
+        desired_path = os.path.expanduser('~/Downloads')  # Example path, adjust accordingly
+        
         if st.button('Download Video'):
-            download_path = download_youtube_video(url)
+            download_path = download_youtube_video(url, output_path=desired_path)
             if download_path:
                 st.success(f"Video successfully downloaded to: {download_path}")
             else:
