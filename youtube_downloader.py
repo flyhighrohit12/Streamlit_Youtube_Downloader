@@ -1,16 +1,13 @@
 import streamlit as st
 from pytube import YouTube
-import tempfile
 import os
 
-def download_video(url):
+def download_video(url, path):
     try:
         yt = YouTube(url)
         stream = yt.streams.get_highest_resolution()
-        temp_dir = tempfile.mkdtemp()
-        download_path = os.path.join(temp_dir, stream.default_filename)
-        stream.download(temp_dir)
-        return download_path
+        stream.download(output_path=path)
+        return os.path.join(path, stream.default_filename)
     except Exception as e:
         return str(e)
 
@@ -20,17 +17,12 @@ url = st.text_input("Enter the YouTube video URL")
 
 if st.button("Download"):
     if url:
+        download_path = os.path.join(os.path.expanduser("~"), "Downloads")
         with st.spinner("Downloading..."):
-            result = download_video(url)
+            result = download_video(url, download_path)
             if os.path.isfile(result):
                 st.success("Video downloaded successfully!")
-                with open(result, 'rb') as file:
-                    st.download_button(
-                        label="Download Video",
-                        data=file,
-                        file_name=os.path.basename(result),
-                        mime='video/mp4'
-                    )
+                st.write(f"Video saved to your Downloads folder: {result}")
             else:
                 st.error(f"Error downloading video: {result}")
     else:
