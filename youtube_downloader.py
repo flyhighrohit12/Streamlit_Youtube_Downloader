@@ -1,11 +1,11 @@
 import streamlit as st
 from pytube import YouTube
-import tempfile
 import os
 
 st.title('YouTube Video Downloader')
 
 url = st.text_input('Enter the URL of the YouTube video you wish to download:')
+download_path = st.text_input('Enter the path where you want to save the video:', '/path/to/download')
 
 if url:
     yt = YouTube(url)
@@ -20,23 +20,15 @@ if url:
         selected_stream = stream.get_by_itag(selected_option[0])
         safe_filename = yt.title.replace('/', '-').replace('\\', '-').replace(':', '-').replace('|', '-').replace('*', '-').replace('?', '-').replace('"', '-').replace('<', '-').replace('>', '-')
 
-        # Create a persistent temporary file instead of directory
-        tmpfile = tempfile.NamedTemporaryFile(delete=False)
-        try:
-            # Download directly to the file
-            selected_stream.download(output_path=os.path.dirname(tmpfile.name), filename=safe_filename)
-            st.success("Downloaded successfully!")
-            st.write(f"Debug: File should be at {tmpfile.name}")
-            tmpfile.close()
-
-            # Open the temporary file for downloading
-            with open(tmpfile.name, 'rb') as f:
-                st.download_button(label="Download Video",
-                                   data=f,
-                                   file_name=safe_filename + ".mp4",
-                                   mime="video/mp4")
-        except Exception as e:
-            st.error(f"Failed to download the video: {e}")
-        finally:
-            # Clean up the temporary file after serving it
-            os.unlink(tmpfile.name)
+        # Check if the specified download path is writable
+        if os.access(download_path, os.W_OK):
+            try:
+                # Download the video directly to the specified path
+                final_path = os.path.join(download_path, safe_filename + '.mp4')
+                selected_stream.download(output_path=download_path, filename=safe_filename)
+                st.success(f"Downloaded successfully to {final_path}")
+                st.write("You can now go to the specified path to access your video.")
+            except Exception as e:
+                st.error(f"Failed to download the video: {e}")
+        else:
+            st.error("The specified path is not writable. Please check your path and permissions.")
