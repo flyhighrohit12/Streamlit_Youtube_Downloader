@@ -8,9 +8,9 @@ def download_video(url):
     try:
         yt = YouTube(url)
         stream = yt.streams.get_highest_resolution()
-        temp_dir = tempfile.mkdtemp()
-        download_path = os.path.join(temp_dir, stream.default_filename)
-        stream.download(temp_dir)
+        temp_dir = tempfile.TemporaryDirectory()
+        download_path = os.path.join(temp_dir.name, stream.default_filename)
+        stream.download(temp_dir.name)
         return download_path
     except Exception as e:
         return str(e)
@@ -25,9 +25,7 @@ if st.button("Download"):
             result = download_video(url)
             if os.path.isfile(result):
                 st.success("Video downloaded successfully!")
-                download_dir = os.path.join(os.path.dirname(result), os.path.basename(result))
-                st.success(download_dir)
-                os.rename(result, download_dir)
+                download_dir = result
                 webbrowser.open(download_dir)  # This will open the downloaded file
             else:
                 st.error(f"Error downloading video: {result}")
