@@ -1,43 +1,33 @@
 import streamlit as st
-from pytube import YouTube
+import requests
 import os
-import re
+import urllib.request
 
-def sanitize_filename(filename):
-    """Remove or replace characters that are not allowed in file names."""
-    return re.sub(r'[\\/*?:"<>|]', "", filename)
+# Set the URL of the YouTube video
+video_url = st.text_input("Enter the YouTube video URL")
 
-def ensure_dir_exists(path):
-    """Ensure the directory exists, and if not, create it."""
-    os.makedirs(path, exist_ok=True)
+# Set the download directory
+download_dir = st.text_input("Enter the download directory")
 
-def save_video(stream, file_path):
-    """Save the video file to the path."""
-    with open(file_path, 'wb') as file:
-        stream.stream_to_buffer(file)
+# Set the file name
+file_name = st.text_input("Enter the file name")
 
-def download_video(url, path):
-    """Download the highest resolution video from the provided YouTube URL."""
-    yt = YouTube(url)
-    ys = yt.streams.get_highest_resolution()
-    safe_title = sanitize_filename(yt.title)
-    file_path = os.path.join(path, safe_title + ".mp4")
-    save_video(ys, file_path)
-    return file_path
+# Download the video
+def download_video(video_url, download_dir, file_name):
+    # Send a GET request to the YouTube video URL
+    response = requests.get(video_url, stream=True)
 
-st.title('YouTube Video Downloader')
-
-url = st.text_input('Enter the YouTube video URL')
-
-path = st.text_input('Enter the path to save the video', value=os.getcwd())
-
-if st.button('Download Video'):
-    if url and path:
-        try:
-            ensure_dir_exists(path)  # Ensure the directory exists
-            file_path = download_video(url, path)
-            st.success(f'Video downloaded successfully! Saved at {file_path}')
-        except Exception as e:
-            st.error(f'An error occurred: {str(e)}')
+    # Check if the response was successful
+    if response.status_code == 200:
+        # Open the file in binary write mode
+        with open(os.path.join(download_dir, file_name), 'wb') as f:
+            # Write the video data to the file
+            for chunk in response.iter_content(1024):
+                f.write(chunk)
+        st.success("Video downloaded successfully!")
     else:
-        st.error('Please enter a valid URL and path.')
+        st.error("Failed to download video")
+
+# Create a button to trigger the download
+if st.button("Download Video"):
+    download_video(video_url, download_dir, file_name)
