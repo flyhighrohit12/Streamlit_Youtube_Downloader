@@ -20,25 +20,23 @@ if url:
         selected_stream = stream.get_by_itag(selected_option[0])
         safe_filename = yt.title.replace('/', '-').replace('\\', '-').replace(':', '-').replace('|', '-').replace('*', '-').replace('?', '-').replace('"', '-').replace('<', '-').replace('>', '-')
 
-        with tempfile.TemporaryDirectory() as tmpdirname:
-            file_path = os.path.join(tmpdirname, safe_filename + '.mp4')
-            # Download the video
-            try:
-                selected_stream.download(output_path=tmpdirname, filename=safe_filename)
-                st.success("Downloaded successfully!")
-                st.write(f"Debug: File should be at {file_path}")
-            except Exception as e:
-                st.error(f"Failed to download the video: {e}")
+        # Create a persistent temporary file instead of directory
+        tmpfile = tempfile.NamedTemporaryFile(delete=False)
+        try:
+            # Download directly to the file
+            selected_stream.download(output_path=os.path.dirname(tmpfile.name), filename=safe_filename)
+            st.success("Downloaded successfully!")
+            st.write(f"Debug: File should be at {tmpfile.name}")
+            tmpfile.close()
 
-            # Check if file exists and then create a download button
-            if os.path.exists(file_path):
-                try:
-                    with open(file_path, 'rb') as f:
-                        st.download_button(label="Download Video",
-                                           data=f,
-                                           file_name=safe_filename + ".mp4",
-                                           mime="video/mp4")
-                except Exception as e:
-                    st.error(f"Error when creating download button: {e}")
-            else:
-                st.error("Failed to find the downloaded file. Please check the debug info.")
+            # Open the temporary file for downloading
+            with open(tmpfile.name, 'rb') as f:
+                st.download_button(label="Download Video",
+                                   data=f,
+                                   file_name=safe_filename + ".mp4",
+                                   mime="video/mp4")
+        except Exception as e:
+            st.error(f"Failed to download the video: {e}")
+        finally:
+            # Clean up the temporary file after serving it
+            os.unlink(tmpfile.name)
