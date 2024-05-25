@@ -2,6 +2,7 @@ import streamlit as st
 from pytube import YouTube
 import tempfile
 import os
+import webbrowser
 
 def download_video(url):
     try:
@@ -24,7 +25,9 @@ if st.button("Download"):
             result = download_video(url)
             if os.path.isfile(result):
                 st.success("Video downloaded successfully!")
-                os.startfile(result)  # This will open the downloaded file
+                download_dir = os.path.join(os.path.join(os.environ['USERPROFILE'], 'Downloads'), os.path.basename(result))
+                os.rename(result, download_dir)
+                webbrowser.open(download_dir)  # This will open the downloaded file
             else:
                 st.error(f"Error downloading video: {result}")
     else:
