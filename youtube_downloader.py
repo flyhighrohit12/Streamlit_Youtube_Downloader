@@ -1,43 +1,30 @@
 import streamlit as st
 from pytube import YouTube
 import os
-from tempfile import NamedTemporaryFile
 
-def download_video(url):
+def save_video(stream, file_path):
+    with open(file_path, 'wb') as file:
+        stream.stream_to_buffer(file)
+
+def download_video(url, path):
     yt = YouTube(url)
-    stream = yt.streams.filter(progressive=True, file_extension='mp4').order_by('resolution').desc().first()
-    # Create a temporary file to store the download
-    temp_file = NamedTemporaryFile(delete=False, suffix=".mp4")
-    stream.download(output_path=temp_file.name[:-len(temp_file.name.split('/')[-1])], filename=temp_file.name.split('/')[-1])
-    return temp_file.name
+    ys = yt.streams.get_highest_resolution()
+    file_path = os.path.join(path, yt.title + ".mp4")
+    save_video(ys, file_path)
+    return file_path
 
-def main():
-    st.title("YouTube Video Downloader")
-    url = st.text_input("Enter the URL of the YouTube video:")
-    
-    if 'download_path' not in st.session_state:
-        st.session_state.download_path = None
+st.title('YouTube Video Downloader')
 
-    if st.button("Download Video"):
-        if url:
-            with st.spinner('Downloading... Please wait'):
-                # Download the video and save the path in session state
-                st.session_state.download_path = download_video(url)
-                st.success("Download ready! Click the same 'Download Video' button again to download the video.")
+url = st.text_input('Enter the YouTube video URL')
 
-    # Provide the link to download the file if available in the session state
-    if st.session_state.download_path:
-        with open(st.session_state.download_path, "rb") as file:
-            btn = st.download_button(
-                label="Download Video",
-                data=file,
-                file_name="downloaded_video.mp4",
-                mime="video/mp4",
-                key="download_file"
-            )
-            if btn:
-                # Clear the download path to reset the state after the file is downloaded
-                st.session_state.download_path = None
+path = st.text_input('Enter the path to save the video', value=os.getcwd())
 
-if __name__ == "__main__":
-    main()
+if st.button('Download Video'):
+    if url and path:
+        try:
+            file_path = download_video(url, path)
+            st.success(f'Video downloaded successfully! Saved at {file_path}')
+        except Exception as e:
+            st.error(f'An error occurred: {str(e)}')
+    else:
+        st.error('Please enter a valid URL and path.')
