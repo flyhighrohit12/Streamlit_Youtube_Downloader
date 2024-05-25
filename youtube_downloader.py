@@ -1,43 +1,35 @@
 import streamlit as st
 from pytube import YouTube
 import os
-import tempfile
-import logging
 
-# Set up basic configuration for logging
-logging.basicConfig(level=logging.INFO)
+def download_youtube_video(url, resolution='720p'):
+    yt = YouTube(url)
+    stream = yt.streams.filter(res=resolution, file_extension='mp4').first()
+    if stream:
+        # Set filename and download path
+        filename = yt.title.replace('/', '-').replace('\\', '-').replace(':', '-').replace('|', '-').replace('*', '-').replace('?', '-').replace('"', '-').replace('<', '-').replace('>', '-')
+        download_path = os.path.join(os.getcwd(), filename + ".mp4")
+        
+        # Download the video
+        stream.download(filename=filename)
+        return download_path
+    else:
+        return None
 
 st.title('YouTube Video Downloader')
 
 url = st.text_input('Enter the URL of the YouTube video you wish to download:')
-
 if url:
-    yt = YouTube(url)
-    st.write(f"Video Title: {yt.title}")
-    st.image(yt.thumbnail_url)
-
-    stream = yt.streams.filter(progressive=True, file_extension='mp4').order_by('resolution').desc()
-    options = [(i.itag, i.resolution) for i in stream]
-    selected_option = st.selectbox('Choose the quality/resolution of the video to download:', options, format_func=lambda x: x[1])
-
-    if st.button('Download Video'):
-        selected_stream = stream.get_by_itag(selected_option[0])
-        safe_filename = yt.title.replace('/', '-').replace('\\', '-').replace(':', '-').replace('|', '-').replace('*', '-').replace('?', '-').replace('"', '-').replace('<', '-').replace('>', '-')
-
-        with tempfile.TemporaryDirectory() as tmpdirname:
-            video_path = os.path.join(tmpdirname, safe_filename + ".mp4")
-            logging.info(f"Starting download to {video_path}")
-            try:
-                selected_stream.download(output_path=tmpdirname, filename=safe_filename)
-                logging.info("Download completed.")
-                if os.path.exists(video_path):
-                    logging.info("File exists, preparing to serve.")
-                    with open(video_path, 'rb') as f:
-                        video_data = f.read()
-                    st.download_button(label='Download Video', data=video_data, file_name=safe_filename + ".mp4", mime="video/mp4")
-                else:
-                    st.error("Downloaded video file not found. Please try again.")
-                    logging.error("File not found after download.")
-            except Exception as e:
-                st.error(f"An error occurred during the download: {str(e)}")
-                logging.error(f"An error occurred during the download: {str(e)}")
+    try:
+        yt = YouTube(url)
+        st.write(f"Video Title: {yt.title}")
+        st.image(yt.thumbnail_url)
+        
+        if st.button('Download Video'):
+            download_path = download_youtube_video(url)
+            if download_path:
+                st.success(f"Video successfully downloaded to: {download_path}")
+            else:
+                st.error("Failed to download the video. Please check the URL or try a different resolution.")
+    except Exception as e:
+        st.error(f"An error occurred: {str(e)}")
