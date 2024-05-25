@@ -1,9 +1,7 @@
 import streamlit as st
 from pytube import YouTube
-import tempfile
 import os
-import subprocess
-import moviepy.editor as mpy
+import tempfile
 
 st.title('YouTube Video Downloader')
 
@@ -22,26 +20,16 @@ if url:
         selected_stream = stream.get_by_itag(selected_option[0])
         safe_filename = yt.title.replace('/', '-').replace('\\', '-').replace(':', '-').replace('|', '-').replace('*', '-').replace('?', '-').replace('"', '-').replace('<', '-').replace('>', '-')
 
-        with tempfile.NamedTemporaryFile(delete=False) as tmpfile:
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            video_path = os.path.join(tmpdirname, safe_filename + ".mp4")
             try:
-                # Download the video directly to a temporary file
-                selected_stream.download(output_path=os.path.dirname(tmpfile.name), filename=safe_filename)
-                tmpfile.close()
-
-                # Convert the downloaded file to a valid MP4 file using ffmpeg
-                mp4_file = os.path.join(os.path.dirname(tmpfile.name), f"{safe_filename}.mp4")
-                ffmpeg_path = '/path/to/ffmpeg'  # Replace with the actual path to ffmpeg
-                subprocess.run([ffmpeg_path, '-i', tmpfile.name, mp4_file])
-
-                # Provide a download button
-                with open(mp4_file, 'rb') as f:
-                    st.download_button(label='Download Video',
-                                       data=f,
-                                       file_name=f"{safe_filename}.mp4",
-                                       mime="video/mp4")
+                selected_stream.download(output_path=tmpdirname, filename=safe_filename)
+                # Ensure the file exists before attempting to open it
+                if os.path.exists(video_path):
+                    with open(video_path, 'rb') as f:
+                        video_data = f.read()
+                    st.download_button(label='Download Video', data=video_data, file_name=safe_filename + ".mp4", mime="video/mp4")
+                else:
+                    st.error("Downloaded video file not found. Please try again.")
             except Exception as e:
-                st.error(f"Failed to download the video: {e}")
-            finally:
-                # Ensure the temporary file is deleted after serving
-                if os.path.exists(tmpfile.name):
-                    os.remove(tmpfile.name)
+                st.error(f"An error occurred during the download: {str(e)}")
