@@ -25,7 +25,7 @@ if st.button("Download"):
             result = download_video(url)
             if os.path.isfile(result):
                 st.success("Video downloaded successfully!")
-                download_dir = os.path.join(os.path.join(os.environ['USERPROFILE'], 'Downloads'), os.path.basename(result))
+                download_dir = os.path.join(os.path.join(os.getcwd(), 'Downloads'), os.path.basename(result))
                 os.rename(result, download_dir)
                 webbrowser.open(download_dir)  # This will open the downloaded file
             else:
