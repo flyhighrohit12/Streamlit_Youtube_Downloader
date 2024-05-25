@@ -27,11 +27,10 @@ if url:
                 tmpfile.close()
 
                 # Provide a download button
-                with open(tmpfile.name, 'rb') as f:
-                    st.download_button(label="Download Video",
-                                       data=f,
-                                       file_name=safe_filename + ".mp4",
-                                       mime="video/mp4")
+                st.download_button(label="Download Video",
+                                   data=tmpfile.name,
+                                   file_name=safe_filename + ".mp4",
+                                   mime="video/mp4")
             except Exception as e:
                 st.error(f"Failed to download the video: {e}")
             finally:
