@@ -29,7 +29,7 @@ if url:
                 # Ensure the file exists before creating the download button
                 if os.path.exists(tmpfile_path):
                     with open(tmpfile_path, 'rb') as f:
-                        st.download_button(label="Download Video",
+                        st.download_button(label="Click here to download the video",
                                            data=f,
                                            file_name=safe_filename + ".mp4",
                                            mime="video/mp4")
