@@ -14,22 +14,24 @@ def download_video(url):
 def main():
     st.title("YouTube Video Downloader")
     url = st.text_input("Enter the URL of the YouTube video:")
-
     if st.button("Download Video"):
-        try:
-            # Download video and get the temporary file path
+        # Show a message while downloading
+        with st.spinner('Downloading... Please wait'):
             file_path = download_video(url)
-            # Provide the link to download the file
+        
+        # Provide the link to download the file
+        if file_path:
+            file_name = os.path.basename(file_path)
             with open(file_path, "rb") as file:
                 btn = st.download_button(
                     label="Download Video",
                     data=file,
-                    file_name="downloaded_video.mp4",
+                    file_name=file_name,
                     mime="video/mp4"
                 )
             os.unlink(file_path)  # Optionally delete the temp file after serving it
-        except Exception as e:
-            st.error(f"An error occurred: {e}")
+        else:
+            st.error("Failed to download video")
 
 if __name__ == "__main__":
     main()
