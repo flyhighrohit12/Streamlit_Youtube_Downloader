@@ -1,31 +1,23 @@
 import streamlit as st
 from pytube import YouTube
 import os
-import webbrowser
 
-def download_video(url):
-    try:
-        yt = YouTube(url)
-        stream = yt.streams.get_highest_resolution()
-        download_path = os.path.join(os.environ['USERPROFILE'], 'Downloads', stream.default_filename)
-        stream.download(os.environ['USERPROFILE'], 'Downloads')
-        return download_path
-    except Exception as e:
-        return str(e)
+def download_video(url, path):
+    yt = YouTube(url)
+    stream = yt.streams.filter(progressive=True, file_extension='mp4').order_by('resolution').desc().first()
+    stream.download(output_path=path)
 
-st.title("YouTube Video Downloader")
+def main():
+    st.title("YouTube Video Downloader")
+    url = st.text_input("Enter the URL of the YouTube video:")
+    path = st.text_input("Enter the download path:", value=os.path.join(os.getenv('USERPROFILE') or os.getenv('HOME'), 'Downloads'))
 
-url = st.text_input("Enter the YouTube video URL")
+    if st.button("Download Video"):
+        try:
+            download_video(url, path)
+            st.success("Downloaded Successfully!")
+        except Exception as e:
+            st.error(f"An error occurred: {e}")
 
-if st.button("Download"):
-    if url:
-        with st.spinner("Downloading..."):
-            result = download_video(url)
-            if os.path.isfile(result):
-                st.success("Video downloaded successfully!")
-                download_dir = result
-                webbrowser.open(download_dir)  # This will open the downloaded file
-            else:
-                st.error(f"Error downloading video: {result}")
-    else:
-        st.error("Please enter a valid URL")
+if __name__ == "__main__":
+    main()
