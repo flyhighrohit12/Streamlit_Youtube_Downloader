@@ -1,7 +1,8 @@
 import streamlit as st
 from pytube import YouTube
-import os
 import tempfile
+import os
+import subprocess
 
 st.title('YouTube Video Downloader')
 
@@ -20,13 +21,25 @@ if url:
         selected_stream = stream.get_by_itag(selected_option[0])
         safe_filename = yt.title.replace('/', '-').replace('\\', '-').replace(':', '-').replace('|', '-').replace('*', '-').replace('?', '-').replace('"', '-').replace('<', '-').replace('>', '-')
 
-        # Create a temporary directory to store the download
-        with tempfile.TemporaryDirectory() as tmpdirname:
-            video_path = os.path.join(tmpdirname, safe_filename + ".mp4")
-            selected_stream.download(output_path=tmpdirname, filename=safe_filename)
+        with tempfile.NamedTemporaryFile(delete=False) as tmpfile:
+            try:
+                # Download the video directly to a temporary file
+                selected_stream.download(output_path=os.path.dirname(tmpfile.name), filename=safe_filename)
+                tmpfile.close()
 
-            # Read the file for download
-            with open(video_path, 'rb') as f:
-                video_data = f.read()
-            
-            st.download_button(label='Download Video', data=video_data, file_name=safe_filename + ".mp4", mime="video/mp4")
+                # Convert the downloaded file to a valid MP4 file using ffmpeg
+                mp4_file = os.path.join(os.path.dirname(tmpfile.name), f"{safe_filename}.mp4")
+                subprocess.run(['ffmpeg', '-i', tmpfile.name, mp4_file])
+
+                # Provide a download button
+                with open(mp4_file, 'rb') as f:
+                    st.download_button(label='Download Video',
+                                       data=f,
+                                       file_name=f"{safe_filename}.mp4",
+                                       mime="video/mp4")
+            except Exception as e:
+                st.error(f"Failed to download the video: {e}")
+            finally:
+                # Ensure the temporary file is deleted after serving
+                if os.path.exists(tmpfile.name):
+                    os.remove(tmpfile.name)
