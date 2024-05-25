@@ -37,4 +37,9 @@ def main():
                 file_name="downloaded_video.mp4",
                 mime="video/mp4"
             )
-        os.unlink(st.session_state
+        os.unlink(st.session_state.download_path)  # Clean up the temporary file
+        # Reset the path in session state to prevent re-download issues
+        st.session_state.download_path = None
+
+if __name__ == "__main__":
+    main()
