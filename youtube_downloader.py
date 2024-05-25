@@ -1,16 +1,13 @@
 import streamlit as st
 from pytube import YouTube
-import tempfile
 import os
-import webbrowser
 
 def download_video(url):
     try:
         yt = YouTube(url)
         stream = yt.streams.get_highest_resolution()
-        temp_dir = tempfile.TemporaryDirectory()
-        download_path = os.path.join(temp_dir.name, stream.default_filename)
-        stream.download(temp_dir.name)
+        download_path = os.path.join(os.getcwd(), stream.default_filename)
+        stream.download()
         return download_path
     except Exception as e:
         return str(e)
