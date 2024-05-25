@@ -15,7 +15,7 @@ if st.button("Download Video"):
 
     # Download the video
     stream = yt.streams.filter(only_audio=False).first()
-    stream.download(output_path='path/to/download/folder')
+    stream.download()
 
     # Display a success message
     st.success(f"Video downloaded successfully")
